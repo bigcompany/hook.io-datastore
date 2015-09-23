@@ -1,16 +1,16 @@
 {
   "name": "hook.io-datastore",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Marak Squires <marak.squires@gmail.com",
   "license": "MIT",
-  "description": "used for running untrusted streaming JavaScript microservices",
+  "description": "module that powers the hook.io platform's Cloud Datastore",
   "repository": {
     "type": "git",
-    "url": "http://github.com/bigcompany/run-service.git"
+    "url": "http://github.com/bigcompany/hook.io-datastore.git"
   },
   "dependencies": {
     "redis": "^0.12.1"

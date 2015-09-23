@@ -7,12 +7,15 @@ var MAX_DOCUMENTS_PER_USER = 100;
 
 /* simple caching resource that uses redis */
 var redis = require("redis"),
-    client = redis.createClient();
+    client;
 
-// TODO: better error handling and client setup/teardown
-client.on("error", function (err) {
-    console.log("Error " + err);
-});
+datastore.start = function (opts) {
+   client = redis.createClient(opts.port, opts.host);
+   // TODO: better error handling and client setup/teardown
+   client.on("error", function (err) {
+       console.log("Error " + err);
+   });
+};
 
 datastore.Datastore = function (opts) {
   var self = this;
