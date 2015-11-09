@@ -9,6 +9,9 @@ var MAX_DOCUMENTS_PER_USER = 100;
 var redis = require("redis"),
     client;
 
+/* Provide both a Promise and callback interface */
+var thenify = require('thenify').withCallback;
+
 datastore.start = function (opts) {
    client = redis.createClient(opts.port, opts.host);
    // TODO: better error handling and client setup/teardown
@@ -25,7 +28,7 @@ datastore.Datastore = function (opts) {
   return self;
 };
 
-datastore.Datastore.prototype.recent = function (cb) {
+datastore.Datastore.prototype.recent = thenify(function (cb) {
 
   var self = this;
 
@@ -66,19 +69,19 @@ datastore.Datastore.prototype.recent = function (cb) {
     
   };
   scan();
-};
+});
 
-datastore.Datastore.prototype.del = function (key, cb) {
+datastore.Datastore.prototype.del = thenify(function (key, cb) {
   var self = this;
   client.del('/ds/' + self.root + "/" + key, cb);
-};
+});
 
-datastore.Datastore.prototype.exists = function (key, cb) {
+datastore.Datastore.prototype.exists = thenify(function (key, cb) {
   var self = this;
   client.exists('/ds/' + self.root + "/" + key, cb);
-};
+});
 
-datastore.Datastore.prototype.set = function (key, data, cb) {
+datastore.Datastore.prototype.set = thenify(function (key, data, cb) {
   var self = this;
 
   self.exists(key, function (err, _exists){
@@ -144,9 +147,9 @@ datastore.Datastore.prototype.set = function (key, data, cb) {
     });
   }
 
-};
+});
 
-datastore.Datastore.prototype.get = function (key, cb) {
+datastore.Datastore.prototype.get = thenify(function (key, cb) {
   var self = this;
   // TODO: consider HMSET / HMGET and not using  of serialization here
   client.get('/ds/' + self.root + "/" + key, function(err, reply){
@@ -155,6 +158,6 @@ datastore.Datastore.prototype.get = function (key, cb) {
     }
     return cb(err, reply);
   });
-};
+});
 
 module['exports'] = datastore;
