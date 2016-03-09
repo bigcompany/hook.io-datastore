@@ -57,14 +57,16 @@ datastore.Datastore.prototype.recent = thenify(function (cb) {
           return cb(err);
         }
         cursor = res[0];
-        res[1].forEach(function(i){
-          results.push(i);
+        for (var i = 0; i<res[1].length; i++) {
+          results.push(res[1][i]);
           if (results.length >= MAX) {
             return _finish();
           }
-        });
+        }
         if (cursor === '0') {
           return _finish();
+        } else {
+          return scan();
         }
       });
     
