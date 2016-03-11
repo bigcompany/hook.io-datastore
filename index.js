@@ -23,6 +23,7 @@ datastore.Datastore = function (opts) {
   opts.port = opts.port || 6379;
   opts.host = opts.host || "0.0.0.0";
   self.client = redis.createClient(opts.port, opts.host);
+  self.client.auth(opts.password);
   self.client.on("error", function (err) {
     console.log("Error " + err);
   });
