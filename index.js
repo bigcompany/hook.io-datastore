@@ -163,4 +163,11 @@ datastore.Datastore.prototype.get = thenify(function (key, cb) {
   });
 });
 
+datastore.Datastore.prototype.keys = thenify(function (key, cb) {
+  var self = this;
+  self.client.multi().keys('/ds/' + self.root + "/" + key, function(err, replies){
+    return cb(err, replies);
+  });
+});
+
 module['exports'] = datastore;
