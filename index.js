@@ -11,8 +11,21 @@ var redis = require("redis");
 /* Provide both a Promise and callback interface */
 var thenify = require('thenify').withCallback;
 
+var client;
+
 datastore.start = function (opts) {
-  // no longer being used
+
+  client = redis.createClient(opts.port, opts.host);
+
+  if (opts.password !== null) {
+    client.auth(opts.password);
+  }
+
+  // TODO: better error handling and client setup/teardown
+  client.on("error", function (err) {
+      console.log("Error: " + err);
+  });
+
 };
 
 datastore.Datastore = function (opts) {
@@ -20,15 +33,6 @@ datastore.Datastore = function (opts) {
   opts = opts || {};
   opts.root = opts.root || "anonymous";
   self.root = opts.root;
-  opts.port = opts.port || 6379;
-  opts.host = opts.host || "0.0.0.0";
-  self.client = redis.createClient(opts.port, opts.host);
-  if (opts.password !== null) {
-    self.client.auth(opts.password);
-  }
-  self.client.on("error", function (err) {
-    console.log("Error " + err);
-  });
   return self;
 };
 
@@ -51,7 +55,7 @@ datastore.Datastore.prototype.recent = thenify(function (cb) {
   }
 
   function scan () {
-    self.client.scan(
+    client.scan(
       cursor,
       "MATCH", "*/ds/" + self.root + "/*",
       "COUNT", 100, // TODO: actually use cursor scan... i think this will only check last 1000 block of records...
@@ -79,12 +83,12 @@ datastore.Datastore.prototype.recent = thenify(function (cb) {
 
 datastore.Datastore.prototype.del = thenify(function (key, cb) {
   var self = this;
-  self.client.del('/ds/' + self.root + "/" + key, cb);
+  client.del('/ds/' + self.root + "/" + key, cb);
 });
 
 datastore.Datastore.prototype.exists = thenify(function (key, cb) {
   var self = this;
-  self.client.exists('/ds/' + self.root + "/" + key, cb);
+  client.exists('/ds/' + self.root + "/" + key, cb);
 });
 
 datastore.Datastore.prototype.set = thenify(function (key, data, cb) {
@@ -118,7 +122,7 @@ datastore.Datastore.prototype.set = thenify(function (key, data, cb) {
     }
 
     function _scan () {
-      self.client.scan(
+      client.scan(
         cursor,
         "MATCH", "*/ds/" + self.root + "/*",
         "COUNT", 100, // TODO: actually use cursor scan... i think this will only check last 1000 block of records...
@@ -147,7 +151,7 @@ datastore.Datastore.prototype.set = thenify(function (key, data, cb) {
   function _set () {
     // MAX_DOCUMENTS_PER_USER limit not hit, add document
     // TODO: consider HMSET instead of seralization here
-    self.client.set('/ds/' + self.root + "/" + key, JSON.stringify(data), function(err, result){
+    client.set('/ds/' + self.root + "/" + key, JSON.stringify(data), function(err, result){
       return cb(err, result);
     });
   }
@@ -157,7 +161,7 @@ datastore.Datastore.prototype.set = thenify(function (key, data, cb) {
 datastore.Datastore.prototype.get = thenify(function (key, cb) {
   var self = this;
   // TODO: consider HMSET / HMGET and not using  of serialization here
-  self.client.get('/ds/' + self.root + "/" + key, function(err, reply){
+  client.get('/ds/' + self.root + "/" + key, function(err, reply){
     if (reply !== null) {
       reply = JSON.parse(reply);
     }
